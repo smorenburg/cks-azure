@@ -1,1 +1,1 @@
-# cks-azure
+# k8s
