@@ -20,11 +20,17 @@ resource "azurerm_key_vault_access_policy" "default" {
     "Delete",
     "Get",
     "Purge",
-    "Recover",
     "Update",
-    "List",
-    "Decrypt",
     "Sign"
+  ]
+
+  secret_permissions = [
+    "Delete",
+    "Get",
+    "List",
+    "Purge",
+    "Recover",
+    "Set"
   ]
 }
 
@@ -59,6 +65,16 @@ resource "azurerm_key_vault_key" "disk_encryption_set" {
 
   depends_on = [
     azurerm_key_vault_access_policy.disk_encryption_set,
+    azurerm_key_vault_access_policy.default
+  ]
+}
+
+resource "azurerm_key_vault_secret" "ssh" {
+  name         = "ssh-default"
+  value        = tls_private_key.ssh.private_key_pem
+  key_vault_id = azurerm_key_vault.default.id
+
+  depends_on = [
     azurerm_key_vault_access_policy.default
   ]
 }
