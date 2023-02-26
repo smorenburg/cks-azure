@@ -24,7 +24,7 @@ resource "azurerm_key_vault_access_policy" "default" {
     "Update",
     "List",
     "Decrypt",
-    "Sign",
+    "Sign"
   ]
 }
 
