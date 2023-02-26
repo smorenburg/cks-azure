@@ -1,3 +1,4 @@
+# Create the network interface and public IP address for the control plane node.
 resource "azurerm_network_interface" "control_001" {
   name                = "nic-vm-control-${local.suffix}-001"
   location            = var.location
@@ -19,6 +20,7 @@ resource "azurerm_public_ip" "control_001" {
   domain_name_label   = "vm-control-${local.suffix}-001"
 }
 
+# Create the control plane node.
 resource "azurerm_linux_virtual_machine" "control_001" {
   name                = "vm-control-${local.suffix}-001"
   location            = var.location
@@ -52,6 +54,7 @@ resource "azurerm_linux_virtual_machine" "control_001" {
   }
 }
 
+# Create the network interface and public IP address for the worker node.
 resource "azurerm_network_interface" "worker_001" {
   name                = "nic-vm-worker-${local.suffix}-001"
   location            = var.location
@@ -73,6 +76,7 @@ resource "azurerm_public_ip" "worker_001" {
   domain_name_label   = "vm-worker-${local.suffix}-001"
 }
 
+# Create the worker node.
 resource "azurerm_linux_virtual_machine" "worker_001" {
   name                = "vm-worker-${local.suffix}-001"
   location            = var.location

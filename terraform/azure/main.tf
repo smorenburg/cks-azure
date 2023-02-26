@@ -61,11 +61,13 @@ resource "random_id" "key_vault" {
   byte_length = 3
 }
 
+# Generate an SSH key pair.
 resource "tls_private_key" "ssh" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
+# Store the private key locally.
 resource "local_sensitive_file" "pem_file" {
   filename             = pathexpand("~/.ssh/id_rsa")
   file_permission      = "600"
@@ -79,6 +81,7 @@ resource "azurerm_resource_group" "default" {
   location = var.location
 }
 
+# Create the public key resource.
 resource "azurerm_ssh_public_key" "default" {
   name                = "ssh-default"
   location            = var.location
