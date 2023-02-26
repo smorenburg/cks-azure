@@ -35,15 +35,7 @@ resource "azurerm_key_vault_access_policy" "disk_encryption_set" {
   object_id    = azurerm_user_assigned_identity.disk_encryption_set.principal_id
 
   key_permissions = [
-    "Create",
-    "Delete",
     "Get",
-    "Purge",
-    "Recover",
-    "Update",
-    "List",
-    "Decrypt",
-    "Sign",
     "WrapKey",
     "UnwrapKey"
   ]
