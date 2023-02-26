@@ -25,8 +25,6 @@ resource "azurerm_key_vault_access_policy" "default" {
     "List",
     "Decrypt",
     "Sign",
-    "WrapKey",
-    "UnwrapKey"
   ]
 }
 
