@@ -27,9 +27,13 @@ resource "azurerm_key_vault_access_policy" "default" {
     "Create",
     "Delete",
     "Get",
+    "List",
     "Purge",
+    "Recover",
     "Update",
-    "Sign"
+    "Sign",
+    "GetRotationPolicy",
+    "SetRotationPolicy"
   ]
 
   secret_permissions = [
