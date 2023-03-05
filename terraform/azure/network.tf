@@ -53,3 +53,17 @@ resource "azurerm_network_security_rule" "ssh" {
   resource_group_name         = azurerm_resource_group.default.name
   network_security_group_name = azurerm_network_security_group.default.name
 }
+
+resource "azurerm_network_security_rule" "node_ports" {
+  name                        = "AllowNodePortsInbound"
+  priority                    = 200
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "30000-40000"
+  source_address_prefixes     = ["${local.public_ip}/32"]
+  destination_address_prefix  = "*"
+  resource_group_name         = azurerm_resource_group.default.name
+  network_security_group_name = azurerm_network_security_group.default.name
+}
