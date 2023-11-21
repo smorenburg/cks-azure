@@ -1,11 +1,3 @@
-locals {
-  # Set the log categories.
-  key_vault_log_categories = data.azurerm_monitor_diagnostic_categories.key_vault.log_category_types
-
-  # Set the metric categories.
-  key_vault_metric_categories = data.azurerm_monitor_diagnostic_categories.key_vault.metrics
-}
-
 # Create the key vault.
 resource "azurerm_key_vault" "default" {
   name                       = "kv-${local.app}-${var.environment}-${random_id.key_vault.hex}"
@@ -90,34 +82,4 @@ resource "azurerm_key_vault_secret" "ssh" {
   depends_on = [
     azurerm_key_vault_access_policy.default
   ]
-}
-
-# Collect the diagnostic categories.
-data "azurerm_monitor_diagnostic_categories" "key_vault" {
-  resource_id = azurerm_key_vault.default.id
-}
-
-# Create the default diagnostic setting, excluding the kube-audit logs.
-resource "azurerm_monitor_diagnostic_setting" "key_vault_default" {
-  name                           = "default"
-  target_resource_id             = azurerm_key_vault.default.id
-  log_analytics_workspace_id     = azurerm_log_analytics_workspace.default.id
-  log_analytics_destination_type = "Dedicated"
-
-  dynamic "enabled_log" {
-    for_each = local.key_vault_log_categories
-
-    content {
-      category = enabled_log.key
-    }
-  }
-
-  dynamic "metric" {
-    for_each = local.key_vault_metric_categories
-
-    content {
-      category = metric.key
-      enabled  = false
-    }
-  }
 }

@@ -23,11 +23,7 @@ terraform {
 }
 
 provider "azurerm" {
-  features {
-    resource_group {
-      prevent_deletion_if_contains_resources = false
-    }
-  }
+  features {}
 }
 
 data "azurerm_client_config" "current" {}
@@ -49,11 +45,6 @@ locals {
 
   # Clean and set the public IP address
   public_ip = chomp(data.http.public_ip.response_body)
-}
-
-# Generate a random suffix for the logs storage account.
-resource "random_id" "storage_account" {
-  byte_length = 3
 }
 
 # Generate a random suffix for the key vault.
@@ -89,23 +80,6 @@ resource "azurerm_ssh_public_key" "default" {
   public_key          = tls_private_key.ssh.public_key_openssh
 }
 
-# Create the Log Analytics workspace.
-resource "azurerm_log_analytics_workspace" "default" {
-  name                = "log-${local.suffix}"
-  location            = var.location
-  resource_group_name = azurerm_resource_group.default.name
-  retention_in_days   = 30
-}
-
-# Create the storage account for the logs.
-resource "azurerm_storage_account" "logs" {
-  name                     = "st${local.app}${var.environment}${random_id.storage_account.hex}"
-  location                 = var.location
-  resource_group_name      = azurerm_resource_group.default.name
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
-}
-
 # Create the managed identity.
 resource "azurerm_user_assigned_identity" "default" {
   name                = "id-${local.suffix}"
@@ -125,7 +99,7 @@ resource "azurerm_disk_encryption_set" "default" {
   name                      = "des-${local.suffix}"
   location                  = var.location
   resource_group_name       = azurerm_resource_group.default.name
-  key_vault_key_id          = azurerm_key_vault_key.disk_encryption_set.id
+  key_vault_key_id          = azurerm_key_vault_key.disk_encryption_set.versionless_id
   auto_key_rotation_enabled = true
 
   identity {
