@@ -1,13 +1,27 @@
 #!/bin/sh
 
+# Source: http://kubernetes.io/docs/getting-started-guides/kubeadm
+
 set -e
 
-KUBE_VERSION=1.26.1
+source /etc/lsb-release
+if [ "$DISTRIB_RELEASE" != "20.04" ]; then
+    echo "################################# "
+    echo "############ WARNING ############ "
+    echo "################################# "
+    echo
+    echo "This script only works on Ubuntu 20.04!"
+    echo "You're using: ${DISTRIB_DESCRIPTION}"
+    echo "Better ABORT with Ctrl+C. Or press any key to continue the install"
+    read
+fi
+
+KUBE_VERSION=1.28.2
 
 
-# Setup terminal.
-apt-get update
-apt-get install -y bash-completion binutils
+### setup terminal
+apt-get --allow-unauthenticated update
+apt-get --allow-unauthenticated install -y bash-completion binutils
 echo 'colorscheme ron' >> ~/.vimrc
 echo 'set tabstop=2' >> ~/.vimrc
 echo 'set shiftwidth=2' >> ~/.vimrc
@@ -19,11 +33,12 @@ echo 'complete -F __start_kubectl k' >> ~/.bashrc
 sed -i '1s/^/force_color_prompt=yes\n/' ~/.bashrc
 
 
-# Disable linux swap and remove any existing swap partitions.
+### disable linux swap and remove any existing swap partitions
 swapoff -a
 sed -i '/\sswap\s/ s/^\(.*\)$/#\1/g' /etc/fstab
 
-# Remove packages.
+
+### remove packages
 kubeadm reset -f || true
 crictl rm --force $(crictl ps -a -q) || true
 apt-mark unhold kubelet kubeadm kubectl kubernetes-cni || true
@@ -31,10 +46,12 @@ apt-get remove -y docker.io containerd kubelet kubeadm kubectl kubernetes-cni ||
 apt-get autoremove -y
 systemctl daemon-reload
 
-# Install Podman
+
+
+### install podman
 . /etc/os-release
-echo "deb https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:testing.list
-curl -L "https://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key" | sudo apt-key add -
+echo "deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /" | sudo tee /etc/apt/sources.list.d/devel:kubic:libcontainers:testing.list
+curl -L "http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/Release.key" | sudo apt-key add -
 apt-get update -qq
 apt-get -qq -y install podman cri-tools containers-common
 rm /etc/apt/sources.list.d/devel:kubic:libcontainers:testing.list
@@ -43,16 +60,18 @@ cat <<EOF | sudo tee /etc/containers/registries.conf
 registries = ['docker.io']
 EOF
 
-# Install packages.
-curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
-cat <<EOF > /etc/apt/sources.list.d/kubernetes.list
-deb http://apt.kubernetes.io/ kubernetes-xenial main
-EOF
-apt-get update
-apt-get install -y docker.io containerd kubelet=${KUBE_VERSION}-00 kubeadm=${KUBE_VERSION}-00 kubectl=${KUBE_VERSION}-00 kubernetes-cni
+
+### install packages
+apt-get install -y apt-transport-https ca-certificates
+mkdir -p /etc/apt/keyrings
+curl -fsSL https://dl.k8s.io/apt/doc/apt-key.gpg | sudo gpg --yes --dearmor -o /etc/apt/keyrings/kubernetes-archive-keyring.gpg
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+apt-get --allow-unauthenticated update
+apt-get --allow-unauthenticated install -y docker.io containerd kubelet=${KUBE_VERSION}-00 kubeadm=${KUBE_VERSION}-00 kubectl=${KUBE_VERSION}-00 kubernetes-cni
 apt-mark hold kubelet kubeadm kubectl kubernetes-cni
 
-# Install containerd 1.6 over apt-installed-version.
+
+### install containerd 1.6 over apt-installed-version
 wget https://github.com/containerd/containerd/releases/download/v1.6.12/containerd-1.6.12-linux-amd64.tar.gz
 tar xvf containerd-1.6.12-linux-amd64.tar.gz
 systemctl stop containerd
@@ -62,7 +81,7 @@ systemctl unmask containerd
 systemctl start containerd
 
 
-# Configure containerd.
+### containerd
 cat <<EOF | sudo tee /etc/modules-load.d/containerd.conf
 overlay
 br_netfilter
@@ -76,6 +95,9 @@ net.bridge.bridge-nf-call-ip6tables = 1
 EOF
 sudo sysctl --system
 sudo mkdir -p /etc/containerd
+
+
+### containerd config
 cat > /etc/containerd/config.toml <<EOF
 disabled_plugins = []
 imports = []
@@ -112,25 +134,39 @@ version = 2
         SystemdCgroup = true
 EOF
 
-# Use containerd as default.
+
+### crictl uses containerd as default
 {
 cat <<EOF | sudo tee /etc/crictl.yaml
 runtime-endpoint: unix:///run/containerd/containerd.sock
 EOF
 }
+
+
+### kubelet should use containerd
 {
 cat <<EOF | sudo tee /etc/default/kubelet
-KUBELET_EXTRA_ARGS="--container-runtime remote --container-runtime-endpoint unix:///run/containerd/containerd.sock"
+KUBELET_EXTRA_ARGS="--container-runtime-endpoint unix:///run/containerd/containerd.sock"
 EOF
 }
 
-# Start services.
+
+
+### start services
 systemctl daemon-reload
 systemctl enable containerd
 systemctl restart containerd
 systemctl enable kubelet && systemctl start kubelet
 
-# Initialize Kubernetes.
+
+
+### init k8s
 kubeadm reset -f
 systemctl daemon-reload
 service kubelet start
+
+
+echo
+echo "EXECUTE ON MASTER: kubeadm token create --print-join-command --ttl 0"
+echo "THEN RUN THE OUTPUT AS COMMAND HERE TO ADD AS WORKER"
+echo
