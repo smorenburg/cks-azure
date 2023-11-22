@@ -16,7 +16,8 @@ resource "azurerm_public_ip" "control_001" {
   name                = "pip-vm-control-${local.suffix}-001"
   location            = var.location
   resource_group_name = azurerm_resource_group.default.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "vm-control-${local.suffix}-001"
 }
 
@@ -76,7 +77,8 @@ resource "azurerm_public_ip" "node_001" {
   name                = "pip-vm-node-${local.suffix}-001"
   location            = var.location
   resource_group_name = azurerm_resource_group.default.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "vm-node-${local.suffix}-001"
 }
 
@@ -97,7 +99,8 @@ resource "azurerm_public_ip" "node_002" {
   name                = "pip-vm-node-${local.suffix}-002"
   location            = var.location
   resource_group_name = azurerm_resource_group.default.name
-  allocation_method   = "Dynamic"
+  allocation_method   = "Static"
+  sku                 = "Standard"
   domain_name_label   = "vm-node-${local.suffix}-002"
 }
 
