@@ -1,9 +1,9 @@
 # Kubernetes
 
-## Install control plane node
+## Install control plane
 sudo -i
 bash <(curl -s https://raw.githubusercontent.com/smorenburg/kubernetes/master/scripts/install_control.sh)
 
-## Install worker node
+## Install nodes
 sudo -i
-bash <(curl -s https://raw.githubusercontent.com/smorenburg/kubernetes/master/scripts/install_worker.sh)
+bash <(curl -s https://raw.githubusercontent.com/smorenburg/kubernetes/master/scripts/install_node.sh)
