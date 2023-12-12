@@ -1,15 +1,15 @@
 terraform {
   required_providers {
     azurerm = {
-      version = ">= 3.43"
+      version = ">= 3.84"
     }
     http = {
       source  = "hashicorp/http"
-      version = ">= 3.2"
+      version = ">= 3.4"
     }
     random = {
       source  = "hashicorp/random"
-      version = ">= 3.4"
+      version = ">= 3.6"
     }
     tls = {
       source  = "hashicorp/tls"
@@ -17,7 +17,7 @@ terraform {
     }
     local = {
       source  = "hashicorp/local"
-      version = ">= 2.3"
+      version = ">= 2.4"
     }
   }
 }
